@@ -6,7 +6,7 @@ from combadge.core.interfaces import SupportsService
 from combadge.support.http.markers import Payload
 from combadge.support.soap.markers import operation_name
 
-from shipaw.parcelforce import request_response
+from parcelforce_expresslink import request_response
 
 
 class FindService(SupportsService, Protocol):

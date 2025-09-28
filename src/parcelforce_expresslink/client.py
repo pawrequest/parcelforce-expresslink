@@ -9,16 +9,16 @@ from pydantic import model_validator
 from thefuzz import fuzz, process
 from zeep.proxy import ServiceProxy
 
-from shipaw.agnostic.ship_types import VALID_POSTCODE
-from shipaw.parcelforce.combadge import (
+from shipaw.models.ship_types import VALID_POSTCODE
+from parcelforce_expresslink.combadge import (
     CancelShipmentService,
     CreateManifestService,
     CreateShipmentService,
     FindService,
     PrintLabelService,
 )
-from shipaw.parcelforce.address import AddTypes, AddressChoice, AddressRecipient
-from shipaw.parcelforce.request_response import (
+from parcelforce_expresslink.address import AddTypes, AddressChoice, AddressRecipient
+from parcelforce_expresslink.request_response import (
     CancelShipmentRequest,
     CancelShipmentResponse,
     CreateManifestRequest,
@@ -29,9 +29,9 @@ from shipaw.parcelforce.request_response import (
     ShipmentRequest,
     ShipmentResponse,
 )
-from shipaw.parcelforce.config import PFSettings, pf_settings
-from shipaw.parcelforce.shipment import Shipment
-from shipaw.parcelforce.top import PAF
+from parcelforce_expresslink.config import PFSettings, pf_settings
+from parcelforce_expresslink.shipment import Shipment
+from parcelforce_expresslink.top import PAF
 
 SCORER = fuzz.token_sort_ratio
 

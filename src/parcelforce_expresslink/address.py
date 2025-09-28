@@ -3,8 +3,8 @@ from pawdantic import paw_types
 from pawdantic.paw_types import MyPhone
 from pydantic import constr
 
-from shipaw.parcelforce.notifications import CollectionNotifications, RecipientNotifications
-from shipaw.parcelforce.shared import PFBaseModel
+from parcelforce_expresslink.notifications import CollectionNotifications, RecipientNotifications
+from parcelforce_expresslink.shared import PFBaseModel
 
 
 class Contact(PFBaseModel):

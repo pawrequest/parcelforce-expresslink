@@ -4,20 +4,20 @@ from typing import Self
 
 from pydantic import constr
 
-from shipaw.parcelforce.types import DropOffInd, ShipmentType
-from shipaw.parcelforce.address import (
+from parcelforce_expresslink.types import DropOffInd, ShipmentType
+from parcelforce_expresslink.address import (
     AddressCollection,
     AddressSender,
     Contact,
     ContactCollection,
     ContactSender,
 )
-from shipaw.parcelforce.config import pf_settings
-from shipaw.parcelforce.lists import HazardousGoods
-from shipaw.parcelforce.models import AddressRecipient, DeliveryOptions
-from shipaw.parcelforce.services import ServiceCode
-from shipaw.parcelforce.shared import DateTimeRange, Enhancement, PFBaseModel
-from shipaw.parcelforce.top import CollectionInfo
+from parcelforce_expresslink.config import pf_settings
+from parcelforce_expresslink.lists import HazardousGoods
+from parcelforce_expresslink.models import AddressRecipient, DeliveryOptions
+from parcelforce_expresslink.services import ServiceCode
+from parcelforce_expresslink.shared import DateTimeRange, Enhancement, PFBaseModel
+from parcelforce_expresslink.top import CollectionInfo
 
 
 class ShipmentReferenceFields(PFBaseModel):

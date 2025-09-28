@@ -4,10 +4,10 @@ import typing as _t
 import pydantic
 from pawdantic import paw_types
 
-import shipaw.parcelforce.types
-from shipaw.agnostic import ship_types
-from shipaw.parcelforce.address import AddTypes, AddressCollection, AddressRecipient, Contact, ContactCollection
-from shipaw.parcelforce.lists import (
+import parcelforce_expresslink.types
+from shipaw.models import ship_types
+from parcelforce_expresslink.address import AddTypes, AddressCollection, AddressRecipient, Contact, ContactCollection
+from parcelforce_expresslink.lists import (
     Barcodes,
     CompletedShipments,
     ContentDetails,
@@ -20,9 +20,9 @@ from shipaw.parcelforce.lists import (
     ServiceCodes,
     SpecifiedNeighbour,
 )
-from shipaw.parcelforce.models import DeliveryOptions, InBoundDetails
-from shipaw.parcelforce.shared import DateTimeRange, Enhancement, PFBaseModel, Returns
-from shipaw.parcelforce.services import ServiceCode
+from parcelforce_expresslink.models import DeliveryOptions, InBoundDetails
+from parcelforce_expresslink.shared import DateTimeRange, Enhancement, PFBaseModel, Returns
+from parcelforce_expresslink.services import ServiceCode
 
 
 class PAF(PFBaseModel):
@@ -122,7 +122,7 @@ class RequestedShipmentMinimum(RequestedShipmentZero):
     contract_number: str
     department_id: int = ship_types.DepartmentNum
 
-    shipment_type: shipaw.parcelforce.types.ShipmentType = 'DELIVERY'
+    shipment_type: parcelforce_expresslink.types.ShipmentType = 'DELIVERY'
     service_code: ServiceCode = ServiceCode.EXPRESS24
     reference_number1: paw_types.optional_truncated_printable_str_type(24)  # first 14 visible on label
 
@@ -137,7 +137,7 @@ class RequestedShipmentMinimum(RequestedShipmentZero):
 
 
 class CollectionMinimum(RequestedShipmentMinimum):
-    shipment_type: shipaw.parcelforce.types.ShipmentType = 'COLLECTION'
+    shipment_type: parcelforce_expresslink.types.ShipmentType = 'COLLECTION'
     print_own_label: bool = True
     collection_info: CollectionInfo
 
@@ -192,7 +192,7 @@ class InternationalInfo(PFBaseModel):
 class RequestedShipmentComplex(RequestedShipmentSimple):
     hazardous_goods: HazardousGoods | None = None
     consignment_handling: bool | None = None
-    drop_off_ind: shipaw.parcelforce.types.DropOffInd | None = None
+    drop_off_ind: parcelforce_expresslink.types.DropOffInd | None = None
     exchange_instructions1: pydantic.constr(max_length=25) | None = None
     exchange_instructions2: pydantic.constr(max_length=25) | None = None
     exchange_instructions3: pydantic.constr(max_length=25) | None = None

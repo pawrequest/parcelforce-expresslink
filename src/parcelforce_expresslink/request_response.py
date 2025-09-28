@@ -4,17 +4,17 @@ import pydantic as pyd
 from loguru import logger
 from pydantic import Field
 
-from shipaw.agnostic import ship_types
-from shipaw.agnostic.base import ShipawBaseModel
-from shipaw.agnostic.requests import Authentication
-from shipaw.agnostic.responses import AlertType, Alerts
-from shipaw.parcelforce.types import ExpressLinkError
-from shipaw.parcelforce.config import pf_settings
-from shipaw.parcelforce.lists import CompletedCancel, SafePlacelist
-from shipaw.parcelforce.models import CompletedReturnInfo, ConvenientCollect, PostOffice, SpecifiedPostOffice
-from shipaw.parcelforce.shared import DateTimeRange, Document, PFBaseModel
-from shipaw.parcelforce.shipment import Shipment
-from shipaw.parcelforce.top import (
+from shipaw.models import ship_types
+from shipaw.models.base import ShipawBaseModel
+from shipaw.models.requests import Authentication
+from shipaw.models.responses import AlertType, Alerts
+from parcelforce_expresslink.types import ExpressLinkError
+from parcelforce_expresslink.config import pf_settings
+from parcelforce_expresslink.lists import CompletedCancel, SafePlacelist
+from parcelforce_expresslink.models import CompletedReturnInfo, ConvenientCollect, PostOffice, SpecifiedPostOffice
+from parcelforce_expresslink.shared import DateTimeRange, Document, PFBaseModel
+from parcelforce_expresslink.shipment import Shipment
+from parcelforce_expresslink.top import (
     CompletedManifests,
     CompletedShipmentInfo,
     CompletedShipmentInfoCreatePrint,

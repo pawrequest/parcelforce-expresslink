@@ -6,7 +6,7 @@ from loguru import logger
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from shipaw.agnostic.requests import Authentication
+from shipaw.models.requests import Authentication
 
 
 def load_env():

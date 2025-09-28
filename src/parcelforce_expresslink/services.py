@@ -1,7 +1,7 @@
 import enum
 from types import MappingProxyType
 
-from shipaw.agnostic.services import Services
+from shipaw.models.services import Services
 
 ParcelforceServiceDict = {
     'NEXT_DAY': 'SND',

@@ -1,6 +1,6 @@
 import pydantic as _p
 
-from shipaw.parcelforce.shared import CollectionNotificationType, NotificationType, PFBaseModel
+from parcelforce_expresslink.shared import CollectionNotificationType, NotificationType, PFBaseModel
 
 
 class CollectionNotifications(PFBaseModel):

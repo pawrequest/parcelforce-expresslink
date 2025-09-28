@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pydantic as _p
 
-from shipaw.agnostic.base import ShipawBaseModel
-from shipaw.agnostic.responses import AlertType
+from shipaw.models.base import ShipawBaseModel
+from shipaw.models.responses import AlertType
 
 
 class PFBaseModel(ShipawBaseModel): ...

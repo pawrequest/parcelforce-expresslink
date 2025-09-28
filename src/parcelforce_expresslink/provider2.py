@@ -3,19 +3,19 @@
 # from dataclasses import dataclass
 # from typing import Self
 #
-# from shipaw.agnostic.address import Address as AddressAgnost, Contact as ContactAgnost, LongContact
-# from shipaw.agnostic.meta import ShippingProvider, register_provider
-# from shipaw.agnostic.requests import ProviderName
-# from shipaw.agnostic.responses import ShipmentBookingResponseAgnost
-# from shipaw.agnostic.services import ServiceDict
-# from shipaw.agnostic.shipment import Shipment as ShipmentAgnost
+# from shipaw.models.address import Address as AddressAgnost, Contact as ContactAgnost, LongContact
+# from shipaw.models.meta import ShippingProvider, register_provider
+# from shipaw.models.requests import ProviderName
+# from shipaw.models.responses import ShipmentBookingResponseAgnost
+# from shipaw.models.services import ServiceDict
+# from shipaw.models.shipment import Shipment as ShipmentAgnost
 #
 # from parcelforce.address import AddressBase, Contact as ContactPF
-# from shipaw.parcelforce.client import ParcelforceClient
-# from shipaw.parcelforce.combadge import CreateShipmentService
-# from shipaw.parcelforce.request_response import ShipmentRequest, ShipmentResponse
-# from shipaw.parcelforce.services import ParcelforceServiceDict
-# from shipaw.parcelforce.shipment import (
+# from parcelforce_expresslink.client import ParcelforceClient
+# from parcelforce_expresslink.combadge import CreateShipmentService
+# from parcelforce_expresslink.request_response import ShipmentRequest, ShipmentResponse
+# from parcelforce_expresslink.services import ParcelforceServiceDict
+# from parcelforce_expresslink.shipment import (
 #     Shipment as ShipmentPF,
 # )
 #
