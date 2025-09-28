@@ -6,7 +6,7 @@ from loguru import logger
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from shipaw.models.requests import Authentication
+from parcelforce_expresslink.request_response import Authentication
 
 
 def load_env():

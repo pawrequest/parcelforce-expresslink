@@ -5,11 +5,11 @@ import zeep
 from combadge.core.typevars import ServiceProtocolT
 from combadge.support.zeep.backends.sync import ZeepBackend
 from loguru import logger
+from pawdantic.paw_types import VALID_POSTCODE
 from pydantic import model_validator
 from thefuzz import fuzz, process
 from zeep.proxy import ServiceProxy
 
-from shipaw.models.ship_types import VALID_POSTCODE
 from parcelforce_expresslink.combadge import (
     CancelShipmentService,
     CreateManifestService,
@@ -62,7 +62,9 @@ class ParcelforceClient(pydantic.BaseModel):
             wsdl=self.settings.pf_wsdl,
             settings=zeep.settings.Settings(strict=self.strict),
         )
-        return client.create_service(binding_name=self.settings.pf_binding, address=self.settings.pf_endpoint)
+        return client.create_service(
+            binding_name=self.settings.pf_binding, address=self.settings.pf_endpoint
+        )
 
     def backend(self, service_prot: type[ServiceProtocolT]) -> zeep.proxy.ServiceProxy:
         """Get a Combadge backend for a service_code protocol.
@@ -89,15 +91,20 @@ class ParcelforceClient(pydantic.BaseModel):
         back = self.backend(CreateShipmentService)
         shipment_request = ShipmentRequest(requested_shipment=shipment)
         authorized_shipment = shipment_request.authenticated(self.settings.get_auth_secrets())
-        resp: ShipmentResponse = back.createshipment(request=authorized_shipment.model_dump(by_alias=True))
+        resp: ShipmentResponse = back.createshipment(
+            request=authorized_shipment.model_dump(by_alias=True)
+        )
         resp.handle_errors()
         return resp
 
-
     def cancel_shipment(self, shipment_number):
-        req = CancelShipmentRequest(shipment_number=shipment_number).authenticated(self.settings.get_auth_secrets())
+        req = CancelShipmentRequest(shipment_number=shipment_number).authenticated(
+            self.settings.get_auth_secrets()
+        )
         back = self.backend(CancelShipmentService)
-        response: CancelShipmentResponse = back.cancelshipment(request=req.model_dump(by_alias=True))
+        response: CancelShipmentResponse = back.cancelshipment(
+            request=req.model_dump(by_alias=True)
+        )
         return response
 
     def get_candidates(self, postcode: str) -> list[AddressRecipient]:
@@ -111,7 +118,9 @@ class ParcelforceClient(pydantic.BaseModel):
 
         """
         postcode = clean_up_postcode(postcode)
-        req = FindRequest(paf=PAF(postcode=postcode)).authenticated(self.settings.get_auth_secrets())
+        req = FindRequest(paf=PAF(postcode=postcode)).authenticated(
+            self.settings.get_auth_secrets()
+        )
         back = self.backend(FindService)
         response = back.find(request=req.model_dump(by_alias=True))
         if not response.paf:
@@ -119,11 +128,15 @@ class ParcelforceClient(pydantic.BaseModel):
             return []
         return [neighbour.address[0] for neighbour in response.paf.specified_neighbour]
 
-    def get_label_content(self, ship_num, print_format: str | None = None, barcode_format: str | None = None) -> bytes:
+    def get_label_content(
+        self, ship_num, print_format: str | None = None, barcode_format: str | None = None
+    ) -> bytes:
         response = self.get_label_response(ship_num, barcode_format, print_format)
         return response.label.data
 
-    def get_label_response(self, ship_num: str, barcode_format: str | None = None, print_format: str | None = None):
+    def get_label_response(
+        self, ship_num: str, barcode_format: str | None = None, print_format: str | None = None
+    ):
         back = self.backend(PrintLabelService)
         # req = PrintLabelRequest(authentication=self.settings.auth(), shipment_number=ship_num)
         req = PrintLabelRequest(
@@ -185,7 +198,9 @@ class ParcelforceClient(pydantic.BaseModel):
         chosen, score = self.choose_address(address)
         return AddressChoice(address=chosen, score=score)
 
-    def get_choices[T: AddTypes](self, postcode: VALID_POSTCODE, address: T | None = None) -> list[AddressChoice]:
+    def get_choices[T: AddTypes](
+        self, postcode: VALID_POSTCODE, address: T | None = None
+    ) -> list[AddressChoice]:
         candidates = self.get_candidates(postcode)
         if not address:
             return [AddressChoice(address=add, score=0) for add in candidates]

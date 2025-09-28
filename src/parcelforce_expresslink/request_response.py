@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+from enum import StrEnum
+from typing import Annotated
+
 import pydantic as pyd
 from loguru import logger
-from pydantic import Field
+from pydantic import Field, StringConstraints
 
-from shipaw.models import ship_types
-from shipaw.models.base import ShipawBaseModel
-from shipaw.models.requests import Authentication
-from shipaw.models.responses import AlertType, Alerts
 from parcelforce_expresslink.types import ExpressLinkError
 from parcelforce_expresslink.config import pf_settings
 from parcelforce_expresslink.lists import CompletedCancel, SafePlacelist
-from parcelforce_expresslink.models import CompletedReturnInfo, ConvenientCollect, PostOffice, SpecifiedPostOffice
+from parcelforce_expresslink.models import (
+    CompletedReturnInfo,
+    ConvenientCollect,
+    PostOffice,
+    SpecifiedPostOffice,
+)
 from parcelforce_expresslink.shared import DateTimeRange, Document, PFBaseModel
 from parcelforce_expresslink.shipment import Shipment
 from parcelforce_expresslink.top import (
@@ -24,6 +28,32 @@ from parcelforce_expresslink.top import (
     RequestedShipmentMinimum,
     ShipmentLabelData,
 )
+
+
+class AlertType(StrEnum):
+    ERROR = 'ERROR'
+    WARNING = 'WARNING'
+    NOTIFICATION = 'NOTIFICATION'
+
+
+class Alert(PFBaseModel):
+    code: int | None = None
+    message: str
+    type: AlertType = AlertType.NOTIFICATION
+
+
+class Alerts(PFBaseModel):
+    alert: list[Alert] = Field(default_factory=list[Alert])
+
+    @classmethod
+    def empty(cls):
+        return cls(alert=[])
+
+
+class Authentication(PFBaseModel):
+    # todo SecretStr!!!!
+    user_name: Annotated[str, StringConstraints(max_length=80)]
+    password: Annotated[str, StringConstraints(max_length=80)]
 
 
 class BaseRequest(PFBaseModel):
@@ -46,7 +76,7 @@ class FindMessage(PFBaseModel):
 class FindRequest(FindMessage, BaseRequest): ...
 
 
-class BaseResponse(ShipawBaseModel):
+class BaseResponse(PFBaseModel):
     alerts: Alerts | None = Field(default_factory=Alerts.empty)
 
 
@@ -108,11 +138,16 @@ class ShipmentResponse(BaseResponse):
 ################################################################
 
 
+class PrintType(StrEnum):
+    ALL_PARCELS = 'ALL_PARCELS'
+    SINGLE_PARCEL = 'SINGLE_PARCEL'
+
+
 class PrintLabelRequest(BaseRequest):
     shipment_number: str
     print_format: str | None = None
     barcode_format: str | None = None
-    print_type: ship_types.PrintType = 'ALL_PARCELS'
+    print_type: PrintType = 'ALL_PARCELS'
 
 
 class PrintLabelResponse(BaseResponse):

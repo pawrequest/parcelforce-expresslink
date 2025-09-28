@@ -5,7 +5,6 @@ import pydantic
 from pawdantic import paw_types
 
 import parcelforce_expresslink.types
-from shipaw.models import ship_types
 from parcelforce_expresslink.address import AddTypes, AddressCollection, AddressRecipient, Contact, ContactCollection
 from parcelforce_expresslink.lists import (
     Barcodes,
@@ -120,7 +119,7 @@ class RequestedShipmentMinimum(RequestedShipmentZero):
     recipient_contact: Contact
 
     contract_number: str
-    department_id: int = ship_types.DepartmentNum
+    department_id: int = 1
 
     shipment_type: parcelforce_expresslink.types.ShipmentType = 'DELIVERY'
     service_code: ServiceCode = ServiceCode.EXPRESS24

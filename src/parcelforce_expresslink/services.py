@@ -1,36 +1,4 @@
 import enum
-from types import MappingProxyType
-
-from shipaw.models.services import Services
-
-ParcelforceServiceDict = {
-    'NEXT_DAY': 'SND',
-    'NEXT_DAY_12': 'S12',
-    'NEXT_DAY_9': '09',
-}
-PARCELFORCE_SERVICES = Services(
-    NEXT_DAY='SND',
-    NEXT_DAY_12='S12',
-    NEXT_DAY_9='09',
-)
-
-PF_SERVICE_MAP = MappingProxyType(
-    {
-        'NEXT_DAY': 'SND',
-        'NEXT_DAY_12': 'S12',
-        'NEXT_DAY_9': '09',
-    }
-)
-
-# ParcelforceServiceTup = ServiceTuple(
-#     NEXT_DAY='SND',
-#     NEXT_DAY_12='S12',
-#     NEXT_DAY_9='09',
-# )
-
-
-def get_pf_service_dict():
-    return ParcelforceServiceDict
 
 
 class ServiceCode(enum.StrEnum):
