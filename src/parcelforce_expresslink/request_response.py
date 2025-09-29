@@ -55,6 +55,14 @@ class Authentication(PFBaseModel):
     user_name: Annotated[str, StringConstraints(max_length=80)]
     password: Annotated[str, StringConstraints(max_length=80)]
 
+    @classmethod
+    def from_settings(cls):
+        settings = pf_settings()
+        return cls(
+            user_name=settings.pf_expr_usr.get_secret_value(),
+            password=settings.pf_expr_pwd.get_secret_value(),
+        )
+
 
 class BaseRequest(PFBaseModel):
     authentication: Authentication | None = None
@@ -62,6 +70,13 @@ class BaseRequest(PFBaseModel):
     def authenticated(self, auth):
         self.authentication = auth
         return self
+
+    def authenticate(self, username: str, password: str):
+        self.authentication = Authentication(user_name=username, password=password)
+        return self
+
+    def authenticate_from_settings(self):
+        return self.authenticate(*pf_settings().get_auth_secrets())
 
 
 class FindMessage(PFBaseModel):

@@ -28,6 +28,7 @@ from parcelforce_expresslink.request_response import (
     PrintLabelResponse,
     ShipmentRequest,
     ShipmentResponse,
+    Authentication,
 )
 from parcelforce_expresslink.config import PFSettings, pf_settings
 from parcelforce_expresslink.shipment import Shipment
@@ -90,7 +91,7 @@ class ParcelforceClient(pydantic.BaseModel):
         """
         back = self.backend(CreateShipmentService)
         shipment_request = ShipmentRequest(requested_shipment=shipment)
-        authorized_shipment = shipment_request.authenticated(self.settings.get_auth_secrets())
+        authorized_shipment = shipment_request.authenticate_from_settings()
         resp: ShipmentResponse = back.createshipment(
             request=authorized_shipment.model_dump(by_alias=True)
         )
@@ -98,9 +99,7 @@ class ParcelforceClient(pydantic.BaseModel):
         return resp
 
     def cancel_shipment(self, shipment_number):
-        req = CancelShipmentRequest(shipment_number=shipment_number).authenticated(
-            self.settings.get_auth_secrets()
-        )
+        req = CancelShipmentRequest(shipment_number=shipment_number).authenticate_from_settings()
         back = self.backend(CancelShipmentService)
         response: CancelShipmentResponse = back.cancelshipment(
             request=req.model_dump(by_alias=True)
@@ -118,9 +117,7 @@ class ParcelforceClient(pydantic.BaseModel):
 
         """
         postcode = clean_up_postcode(postcode)
-        req = FindRequest(paf=PAF(postcode=postcode)).authenticated(
-            self.settings.get_auth_secrets()
-        )
+        req = FindRequest(paf=PAF(postcode=postcode)).authenticate_from_settings()
         back = self.backend(FindService)
         response = back.find(request=req.model_dump(by_alias=True))
         if not response.paf:
@@ -140,7 +137,7 @@ class ParcelforceClient(pydantic.BaseModel):
         back = self.backend(PrintLabelService)
         # req = PrintLabelRequest(authentication=self.settings.auth(), shipment_number=ship_num)
         req = PrintLabelRequest(
-            authentication=self.settings.get_auth_secrets(),
+            authentication=Authentication.from_settings(),
             shipment_number=ship_num,
             print_format=print_format,
             barcode_format=barcode_format,
@@ -181,7 +178,7 @@ class ParcelforceClient(pydantic.BaseModel):
 
     def get_manifest(self):
         back = self.backend(CreateManifestService)
-        req = CreateManifestRequest(authentication=self.settings.get_auth_secrets())
+        req = CreateManifestRequest(authentication=Authentication.from_settings())
         response: CreateManifestResponse = back.createmanifest(request=req)
         return response
 
