@@ -1,10 +1,15 @@
 import pydantic
 from pawdantic import paw_types
-from pawdantic.paw_types import MyPhone
 from pydantic import constr
 
-from parcelforce_expresslink.notifications import CollectionNotifications, RecipientNotifications
+
+from parcelforce_expresslink.notifications import (
+    CollectionNotifications,
+    RecipientNotifications,
+)
 from parcelforce_expresslink.shared import PFBaseModel
+
+MyPhone = str
 
 
 class Contact(PFBaseModel):
@@ -12,20 +17,22 @@ class Contact(PFBaseModel):
     mobile_phone: str
     email_address: constr(max_length=50)
     contact_name: paw_types.truncated_printable_str_type(30)
-    notifications: RecipientNotifications | None = RecipientNotifications.standard_recip()
+    notifications: RecipientNotifications | None = (
+        RecipientNotifications.standard_recip()
+    )
 
     @property
     def notifications_str(self) -> str:
-        msg = f'Recip Notifications = {self.notifications} ({self.email_address} + {self.mobile_phone})'
+        msg = f"Recip Notifications = {self.notifications} ({self.email_address} + {self.mobile_phone})"
         return msg
 
     @classmethod
     def empty(cls):
         return cls(
-            business_name='',
-            mobile_phone='00000000000',
-            email_address='',
-            contact_name='',
+            business_name="",
+            mobile_phone="00000000000",
+            email_address="",
+            contact_name="",
         )
 
 
@@ -33,14 +40,16 @@ class ContactCollection(Contact):
     senders_name: paw_types.optional_truncated_printable_str_type(25)
     # senders_name: constr(max_length=25) | None = None
     telephone: MyPhone | None = None
-    notifications: CollectionNotifications | None = CollectionNotifications.standard_coll()
+    notifications: CollectionNotifications | None = (
+        CollectionNotifications.standard_coll()
+    )
 
     @property
     def notifications_str(self) -> str:
-        msg = f'Collecton Notifications = {self.notifications} ({self.email_address} + {self.mobile_phone})'
+        msg = f"Collecton Notifications = {self.notifications} ({self.email_address} + {self.mobile_phone})"
         return msg
 
-    @pydantic.model_validator(mode='after')
+    @pydantic.model_validator(mode="after")
     def tel_is_none(self):
         if not self.telephone:
             self.telephone = self.mobile_phone
@@ -66,20 +75,20 @@ class ContactSender(Contact):
 
 
 class ContactTemporary(Contact):
-    business_name: str = ''
-    contact_name: str = ''
+    business_name: str = ""
+    contact_name: str = ""
     mobile_phone: MyPhone | None = None
-    email_address: str = ''
+    email_address: str = ""
     telephone: MyPhone | None = None
-    senders_name: str = ''
+    senders_name: str = ""
 
-    @pydantic.model_validator(mode='after')
+    @pydantic.model_validator(mode="after")
     def fake(self):
         for field, value in self.model_dump().items():
             if not value:
-                value = '========='
-                if field == 'email_address':
-                    value = f'{value}@f======f.com'
+                value = "========="
+                if field == "email_address":
+                    value = f"{value}@f======f.com"
                 setattr(self, field, value)
         return self
 
@@ -87,13 +96,13 @@ class ContactTemporary(Contact):
 def address_string_to_dict(address_str: str) -> dict[str, str]:
     addr_lines = address_str.splitlines()
     if len(addr_lines) < 3:
-        addr_lines.extend([''] * (3 - len(addr_lines)))
+        addr_lines.extend([""] * (3 - len(addr_lines)))
     elif len(addr_lines) > 3:
-        addr_lines[2] = ','.join(addr_lines[2:])
+        addr_lines[2] = ",".join(addr_lines[2:])
     return {
-        'address_line1': addr_lines[0],
-        'address_line2': addr_lines[1],
-        'address_line3': addr_lines[2],
+        "address_line1": addr_lines[0],
+        "address_line2": addr_lines[1],
+        "address_line3": addr_lines[2],
     }
 
 
@@ -103,11 +112,14 @@ class AddressBase(PFBaseModel):
     address_line3: paw_types.optional_truncated_printable_str_type(24)
     town: constr(max_length=25)
     postcode: constr(max_length=16)
-    country: str = 'GB'
+    country: str = "GB"
 
     @property
     def lines_dict(self):
-        return {line_field: getattr(self, line_field) for line_field in sorted(self.lines_fields_set)}
+        return {
+            line_field: getattr(self, line_field)
+            for line_field in sorted(self.lines_fields_set)
+        }
 
     @property
     def lines_fields_set(self):
@@ -115,11 +127,11 @@ class AddressBase(PFBaseModel):
 
     @property
     def lines_str(self):
-        return '\n'.join(self.lines_dict.values())
+        return "\n".join(self.lines_dict.values())
 
     @property
     def lines_str_oneline(self):
-        return ', '.join(self.lines_dict.values())
+        return ", ".join(self.lines_dict.values())
 
 
 class AddressSender(AddressBase):
@@ -161,7 +173,7 @@ class AddressChoice[T: AddressCollection | AddressRecipient](PFBaseModel):
     score: int
 
 
-addr_lines_fields_set = {'address_line1', 'address_line2', 'address_line3'}
+addr_lines_fields_set = {"address_line1", "address_line2", "address_line3"}
 AddTypes = AddressRecipient | AddressCollection | AddressSender
 
 
