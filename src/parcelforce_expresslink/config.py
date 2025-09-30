@@ -4,7 +4,7 @@ from importlib.resources import files
 from pathlib import Path
 
 from loguru import logger
-from pydantic import SecretStr
+from pydantic import SecretStr, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +14,14 @@ def load_env():
         raise ValueError('PARCELFORCE_ENV not set correctly')
     logger.debug(f'Loading PARCELFORCE environment from {ship_env}')
     return ship_env
+
+
+def get_wsdl():
+    res = Path(files('parcelforce_expresslink').joinpath('expresslink_api.wsdl'))
+    if not res.exists():
+        raise FileNotFoundError('WSDL file not found')
+    logger.info(f'Using WSDL file at {res}')
+    return res
 
 
 class PFSettings(BaseSettings):
@@ -30,7 +38,7 @@ class PFSettings(BaseSettings):
     pf_expr_usr: SecretStr
     pf_expr_pwd: SecretStr
     pf_endpoint: str
-    pf_wsdl: str = files('parcelforce_expresslink.resources').joinpath('expresslink_api.wsdl')
+    pf_wsdl: str = Field(default_factory=get_wsdl)
     pf_binding: str = r'{http://www.parcelforce.net/ws/ship/v14}ShipServiceSoapBinding'
     tracking_url_stem: str = r'https://www.royalmail.com/track-your-item#/tracking-results/'
 
