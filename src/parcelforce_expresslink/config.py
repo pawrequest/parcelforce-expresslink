@@ -1,5 +1,6 @@
 import functools
 import os
+from importlib.resources import files
 from pathlib import Path
 
 from loguru import logger
@@ -28,9 +29,8 @@ class PFSettings(BaseSettings):
 
     pf_expr_usr: SecretStr
     pf_expr_pwd: SecretStr
-
     pf_endpoint: str
-    pf_wsdl: str
+    pf_wsdl: str = files('parcelforce_expresslink.resources').joinpath('expresslink_api.wsdl')
     pf_binding: str = r'{http://www.parcelforce.net/ws/ship/v14}ShipServiceSoapBinding'
     tracking_url_stem: str = r'https://www.royalmail.com/track-your-item#/tracking-results/'
 
