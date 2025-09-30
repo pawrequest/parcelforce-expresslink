@@ -2,6 +2,7 @@ import functools
 import os
 from importlib.resources import files
 from pathlib import Path
+from typing import cast
 
 from loguru import logger
 from pydantic import SecretStr, Field
@@ -17,11 +18,11 @@ def load_env():
 
 
 def get_wsdl():
-    res = Path(files('parcelforce_expresslink').joinpath('expresslink_api.wsdl'))
+    res = Path(cast(Path, files('parcelforce_expresslink').joinpath('expresslink_api.wsdl')))
     if not res.exists():
         raise FileNotFoundError('WSDL file not found')
     logger.info(f'Using WSDL file at {res}')
-    return res
+    return str(res.resolve())
 
 
 class PFSettings(BaseSettings):
