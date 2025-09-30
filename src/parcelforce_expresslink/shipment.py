@@ -18,6 +18,7 @@ from parcelforce_expresslink.models import AddressRecipient, DeliveryOptions
 from parcelforce_expresslink.services import ServiceCode
 from parcelforce_expresslink.shared import DateTimeRange, Enhancement, PFBaseModel
 from parcelforce_expresslink.top import CollectionInfo
+from shipaw.models.ship_types import ShipDirection
 
 
 class ShipmentReferenceFields(PFBaseModel):
@@ -50,7 +51,9 @@ class Shipment(ShipmentReferenceFields):
     sender_contact: ContactSender | None = None
     sender_address: AddressSender | None = None
 
-    _label_file: Path | None = None  # must be private for xml serialization to exclude / expresslink to work
+    _label_file: Path | None = (
+        None  # must be private for xml serialization to exclude / expresslink to work
+    )
 
     # currently unused (but required by expresslink)
     enhancement: Enhancement | None = None
@@ -59,24 +62,37 @@ class Shipment(ShipmentReferenceFields):
     consignment_handling: bool | None = None
     drop_off_ind: DropOffInd | None = None
 
-    # @property
-    # def direction(self) -> ShipDirection:
-    #     if self.shipment_type == ShipmentType.DELIVERY:
-    #         if self.sender_address is None:
-    #             return ShipDirection.OUTBOUND
-    #         else:
-    #             return ShipDirection.DROPOFF
-    #     elif self.shipment_type == ShipmentType.COLLECTION:
-    #         return ShipDirection.INBOUND
-    #     else:
-    #         raise ValueError()
+    @property
+    def direction(self) -> ShipDirection:
+        if self.shipment_type == ShipmentType.DELIVERY:
+            if self.sender_address is None:
+                return ShipDirection.OUTBOUND
+            else:
+                return ShipDirection.DROPOFF
+        elif self.shipment_type == ShipmentType.COLLECTION:
+            return ShipDirection.INBOUND
+        else:
+            raise ValueError()
+
+    def convert(self, direction: ShipDirection):
+        match direction:
+            case ShipDirection.OUTBOUND:
+                return self
+            case ShipDirection.INBOUND:
+                return self.to_inbound()
+            case ShipDirection.DROPOFF:
+                return self.to_dropoff()
+            case _:
+                raise ValueError('Invalid Ship Direction')
 
     def to_inbound(self) -> Self:
         """Modify ship_pf in place to be an inbound shipment / dropoff"""
         self.shipment_type = ShipmentType.COLLECTION
         self.print_own_label = True
         self.collection_info = CollectionInfo(
-            collection_contact=ContactCollection(**self.recipient_contact.model_dump(exclude={'notifications'})),
+            collection_contact=ContactCollection(
+                **self.recipient_contact.model_dump(exclude={'notifications'})
+            ),
             collection_address=AddressCollection(**self.recipient_address.model_dump()),
             collection_time=DateTimeRange.null_times_from_date(self.shipping_date),
         )
