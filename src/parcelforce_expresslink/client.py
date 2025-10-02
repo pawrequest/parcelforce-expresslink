@@ -5,7 +5,6 @@ import zeep
 from combadge.core.typevars import ServiceProtocolT
 from combadge.support.zeep.backends.sync import ZeepBackend
 from loguru import logger
-from pawdantic.paw_types import VALID_POSTCODE
 from pydantic import model_validator
 from thefuzz import fuzz, process
 from zeep.proxy import ServiceProxy
@@ -33,6 +32,7 @@ from parcelforce_expresslink.request_response import (
 from parcelforce_expresslink.config import PFSettings, pf_settings
 from parcelforce_expresslink.shipment import Shipment
 from parcelforce_expresslink.top import PAF
+from parcelforce_expresslink.types import VALID_POSTCODE
 
 SCORER = fuzz.token_sort_ratio
 

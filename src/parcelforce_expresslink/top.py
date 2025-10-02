@@ -2,10 +2,17 @@ import datetime as dt
 import typing as _t
 
 import pydantic
-from pawdantic import paw_types
+# from pawdantic import paw_types
 
 import parcelforce_expresslink.types
-from parcelforce_expresslink.address import AddTypes, AddressCollection, AddressRecipient, Contact, ContactCollection
+from parcelforce_expresslink.address import (
+    AddTypes,
+    AddressCollection,
+    AddressRecipient,
+    Contact,
+    ContactCollection,
+)
+from parcelforce_expresslink.types import string_type
 from parcelforce_expresslink.lists import (
     Barcodes,
     CompletedShipments,
@@ -27,7 +34,9 @@ from parcelforce_expresslink.services import ServiceCode
 class PAF(PFBaseModel):
     postcode: str | None = None
     count: int | None = pydantic.Field(None)
-    specified_neighbour: list[SpecifiedNeighbour] = pydantic.Field(default_factory=list, description='')
+    specified_neighbour: list[SpecifiedNeighbour] = pydantic.Field(
+        default_factory=list, description=''
+    )
 
 
 class Department(PFBaseModel):
@@ -111,7 +120,9 @@ class CollectionStateProtocol(_t.Protocol):
 class RequestedShipmentZero(PFBaseModel):
     recipient_contact: Contact
     recipient_address: AddTypes
-    total_number_of_parcels: int = pydantic.Field(..., description='Number of parcels in the shipment')
+    total_number_of_parcels: int = pydantic.Field(
+        ..., description='Number of parcels in the shipment'
+    )
     shipping_date: dt.date
 
 
@@ -123,7 +134,7 @@ class RequestedShipmentMinimum(RequestedShipmentZero):
 
     shipment_type: parcelforce_expresslink.types.ShipmentType = 'DELIVERY'
     service_code: ServiceCode = ServiceCode.EXPRESS24
-    reference_number1: paw_types.optional_truncated_printable_str_type(24)  # first 14 visible on label
+    reference_number1: string_type(24) | None = None  # first 14 visible on label
 
     special_instructions1: pydantic.constr(max_length=25) | None = None
     special_instructions2: pydantic.constr(max_length=25) | None = None
