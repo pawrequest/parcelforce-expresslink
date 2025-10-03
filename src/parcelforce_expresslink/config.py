@@ -10,7 +10,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def load_env():
-    ship_env = Path(os.getenv("PARCELFORCE_ENV"))
+    ship_env = os.getenv("PARCELFORCE_ENV")
+    if ship_env is None:
+        raise ValueError("PARCELFORCE_ENV not set")
+    ship_env = Path(ship_env)
     if not ship_env.exists():
         raise ValueError("PARCELFORCE_ENV not set correctly")
     logger.debug(f"Loading PARCELFORCE environment from {ship_env}")
