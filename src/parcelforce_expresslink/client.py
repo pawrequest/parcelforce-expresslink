@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from functools import lru_cache
+from typing import Self
+
 import pydantic
 import zeep
 from combadge.core.typevars import ServiceProtocolT
@@ -18,6 +21,7 @@ from parcelforce_expresslink.combadge import (
 )
 from parcelforce_expresslink.address import AddTypes, AddressChoice, AddressRecipient
 from parcelforce_expresslink.request_response import (
+    Authentication,
     CancelShipmentRequest,
     CancelShipmentResponse,
     CreateManifestRequest,
@@ -27,9 +31,8 @@ from parcelforce_expresslink.request_response import (
     PrintLabelResponse,
     ShipmentRequest,
     ShipmentResponse,
-    Authentication,
 )
-from parcelforce_expresslink.config import PFSettings, pf_settings
+from parcelforce_expresslink.config import ParcelforceSettings
 from parcelforce_expresslink.shipment import Shipment
 from parcelforce_expresslink.top import PAF
 from parcelforce_expresslink.types import VALID_POSTCODE
@@ -45,12 +48,16 @@ class ParcelforceClient(pydantic.BaseModel):
         settings: pf_config.PFSettings - settings for the client
         service: ServiceProxy | None - Zeep ServiceProxy (generated from settings)
     """
-
-    settings: PFSettings = pf_settings()
+    settings: ParcelforceSettings
     service: ServiceProxy | None = None
     strict: bool = True
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True, validate_default=True)
+
+    @classmethod
+    @lru_cache
+    def from_env(cls, env_name = 'PARCELFORCE_ENV') -> Self:
+        return cls(settings=ParcelforceSettings.from_env(env_name))
 
     @model_validator(mode='after')
     def get_service(self):
@@ -137,7 +144,7 @@ class ParcelforceClient(pydantic.BaseModel):
         back = self.backend(PrintLabelService)
         # req = PrintLabelRequest(authentication=self.settings.auth(), shipment_number=ship_num)
         req = PrintLabelRequest(
-            authentication=Authentication.from_settings(),
+            authentication=Authentication.from_settings(self.settings),
             shipment_number=ship_num,
             print_format=print_format,
             barcode_format=barcode_format,

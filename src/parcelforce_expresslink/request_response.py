@@ -7,8 +7,8 @@ import pydantic as pyd
 from loguru import logger
 from pydantic import Field, StringConstraints
 
+from parcelforce_expresslink.config import ParcelforceSettings
 from parcelforce_expresslink.types import ExpressLinkError
-from parcelforce_expresslink.config import pf_settings
 from parcelforce_expresslink.lists import CompletedCancel, SafePlacelist
 from parcelforce_expresslink.models import (
     CompletedReturnInfo,
@@ -56,8 +56,7 @@ class Authentication(PFBaseModel):
     password: Annotated[str, StringConstraints(max_length=80)]
 
     @classmethod
-    def from_settings(cls):
-        settings = pf_settings()
+    def from_settings(cls, settings: ParcelforceSettings) -> Self:
         return cls(
             user_name=settings.pf_expr_usr.get_secret_value(),
             password=settings.pf_expr_pwd.get_secret_value(),
@@ -76,7 +75,7 @@ class BaseRequest(PFBaseModel):
         return self
 
     def authenticate_from_settings(self):
-        return self.authenticate(*pf_settings().get_auth_secrets())
+        return self.authenticate(*ParcelforceSettings.from_env().get_auth_secrets())
 
 
 class FindMessage(PFBaseModel):
@@ -126,13 +125,8 @@ class ShipmentResponse(BaseResponse):
             return self.completed_shipment_info.status.lower() == 'allocated'
         return False
 
-    # def tracking_link_pf_old(self):
-    #     tlink = pf_sett().tracking_url_stem_old_pf + self.shipment_num
-    #     # logger.info(f'Getting tracking link: {str(tlink)}')
-    #     return tlink
-
     def tracking_link(self):
-        stem = pf_settings().tracking_url_stem
+        stem = ParcelforceSettings.from_env().tracking_url_stem
         tlink = f'{stem}PB{self.shipment_num}001'
         return tlink
 

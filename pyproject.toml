@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "parcelforce-expresslink"
-version = "0.1.2"
+version = "0.1.3"
 description = "Basic client for Parcelforce Expresslink API"
 readme = "README.md"
 authors = [
@@ -22,3 +22,8 @@ dependencies = [
 
 [project.scripts]
 parcelforce-expresslink = "parcelforce_expresslink:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]

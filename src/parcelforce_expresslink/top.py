@@ -2,7 +2,6 @@ import datetime as dt
 import typing as _t
 
 import pydantic
-# from pawdantic import paw_types
 
 import parcelforce_expresslink.types
 from parcelforce_expresslink.address import (
@@ -12,6 +11,9 @@ from parcelforce_expresslink.address import (
     Contact,
     ContactCollection,
 )
+if _t.TYPE_CHECKING:
+    from parcelforce_expresslink.shipment import Shipment
+
 from parcelforce_expresslink.types import string_type
 from parcelforce_expresslink.lists import (
     Barcodes,
@@ -95,6 +97,16 @@ class CollectionInfo(PFBaseModel):
     collection_contact: ContactCollection
     collection_address: AddressCollection
     collection_time: DateTimeRange
+
+    @classmethod
+    def from_shipment(cls, shipment: 'Shipment') -> _t.Self:
+        return cls(
+            collection_address=AddressCollection(**shipment.recipient_address.model_dump()),
+            collection_contact=ContactCollection.model_validate(
+                shipment.recipient_contact.model_dump(exclude={'notifications'})
+            ),
+            collection_time=DateTimeRange.null_times_from_date(shipment.shipping_date),
+        )
 
 
 class CollectionStateProtocol(_t.Protocol):

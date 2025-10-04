@@ -1,3 +1,5 @@
+from typing import Self
+
 import pydantic
 from pydantic import constr
 
@@ -44,9 +46,9 @@ class ContactCollection(Contact):
         return msg
 
     @pydantic.model_validator(mode='after')
-    def tel_is_none(self):
-        if not self.telephone:
-            self.telephone = self.mobile_phone
+    def fill_nones(self):
+        self.telephone = self.telephone or self.mobile_phone
+        self.senders_name = self.senders_name or self.contact_name
         return self
 
     # @classmethod
@@ -66,6 +68,10 @@ class ContactSender(Contact):
     telephone: MyPhone | None = None
     senders_name: string_type(25) | None = None
     notifications: None = None
+
+    @classmethod
+    def from_recipient(cls, recipient_contact) -> Self:
+        return cls(**recipient_contact.model_dump(exclude={'notifications'}))
 
 
 class ContactTemporary(Contact):
@@ -128,14 +134,9 @@ class AddressBase(PFBaseModel):
 
 
 class AddressSender(AddressBase):
-    ...
-
-    # def address_lines_dict(self):
-    #     return {
-    #         "address_line1": self.address_line1,
-    #         "address_line2": self.address_line2,
-    #         "address_line3": self.address_line3,
-    #     }
+    @classmethod
+    def from_recipient(cls, recipient: AddressBase) -> Self:
+        return cls(**recipient.model_dump(exclude_none=True))
 
 
 class AddressCollection(AddressSender):
