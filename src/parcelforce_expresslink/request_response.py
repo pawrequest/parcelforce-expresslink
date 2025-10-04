@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, Self
 
 import pydantic as pyd
 from loguru import logger
@@ -51,7 +51,6 @@ class Alerts(PFBaseModel):
 
 
 class Authentication(PFBaseModel):
-    # todo SecretStr!!!!
     user_name: Annotated[str, StringConstraints(max_length=80)]
     password: Annotated[str, StringConstraints(max_length=80)]
 

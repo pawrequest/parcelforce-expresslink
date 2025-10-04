@@ -31,6 +31,7 @@ from parcelforce_expresslink.request_response import (
     PrintLabelResponse,
     ShipmentRequest,
     ShipmentResponse,
+    BaseRequest,
 )
 from parcelforce_expresslink.config import ParcelforceSettings
 from parcelforce_expresslink.shipment import Shipment
@@ -48,15 +49,19 @@ class ParcelforceClient(pydantic.BaseModel):
         settings: pf_config.PFSettings - settings for the client
         service: ServiceProxy | None - Zeep ServiceProxy (generated from settings)
     """
+
     settings: ParcelforceSettings
     service: ServiceProxy | None = None
     strict: bool = True
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True, validate_default=True)
 
+    def authenticate_request(self, req: BaseRequest):
+        req.authentication = Authentication.from_settings(self.settings)
+
     @classmethod
     @lru_cache
-    def from_env(cls, env_name = 'PARCELFORCE_ENV') -> Self:
+    def from_env(cls, env_name='PARCELFORCE_ENV') -> Self:
         return cls(settings=ParcelforceSettings.from_env(env_name))
 
     @model_validator(mode='after')
@@ -98,9 +103,9 @@ class ParcelforceClient(pydantic.BaseModel):
         """
         back = self.backend(CreateShipmentService)
         shipment_request = ShipmentRequest(requested_shipment=shipment)
-        authorized_shipment = shipment_request.authenticate_from_settings()
+        self.authenticate_request(shipment_request)
         resp: ShipmentResponse = back.createshipment(
-            request=authorized_shipment.model_dump(by_alias=True)
+            request=shipment_request.model_dump(by_alias=True)
         )
         resp.handle_errors()
         return resp
@@ -124,7 +129,8 @@ class ParcelforceClient(pydantic.BaseModel):
 
         """
         postcode = clean_up_postcode(postcode)
-        req = FindRequest(paf=PAF(postcode=postcode)).authenticate_from_settings()
+        req = FindRequest(paf=PAF(postcode=postcode))
+        self.authenticate_request(req)
         back = self.backend(FindService)
         response = back.find(request=req.model_dump(by_alias=True))
         if not response.paf:
