@@ -11,6 +11,7 @@ from parcelforce_expresslink.address import (
     Contact,
     ContactCollection,
     ContactSender,
+    AddressBase,
 )
 from parcelforce_expresslink.lists import HazardousGoods
 from parcelforce_expresslink.models import AddressRecipient, DeliveryOptions
@@ -79,16 +80,50 @@ class Shipment(ShipmentReferenceFields):
         res.sender_address = AddressSender.from_recipient(self.recipient_address)
         return res
 
+    # def to_dropoff_alrady(self, *, recipient_address, recipient_contact) -> Self:
+    #     if (
+    #         self.collection_info
+    #         or self.shipment_type == ShipmentType.COLLECTION
+    #         or self.sender_contact
+    #         or self.sender_address
+    #     ):
+    #         raise ValueError('Can only convert outbound delivery shipments')
+    #     res = self.model_copy(deep=True)
+    #     return res
+
+    def make_shipment_inbound_collection(self):
+        """ASSUMES ALREADY HAS SENDER"""
+        self.shipment_type = ShipmentType.COLLECTION
+        self.collection_info = collection_info_from_deets(
+            address=self.sender_address,
+            contact=self.sender_contact,
+            shipping_date=self.shipping_date,
+        )
+        return self
+
     def to_inbound(self, *, recipient_address, recipient_contact, own_label=True) -> Self:
         if self.collection_info or self.shipment_type == ShipmentType.COLLECTION:
             raise ValueError('Can only convert outbound delivery shipments')
         res = self.model_copy(deep=True)
         res.shipment_type = ShipmentType.COLLECTION
         res.print_own_label = own_label
-        res.collection_info = collection_info_from_recipient(self)
+        res.collection_info = collection_info_from_deets(
+            address=res.recipient_address.model_copy(),
+            contact=res.recipient_contact.model_copy(),
+            shipping_date=res.shipping_date,
+        )
         res.recipient_contact = recipient_contact
         res.recipient_address = recipient_address
         return res
+
+    # def to_inbound_already_reciped(self, *, own_label=True) -> Self:
+    #     if self.collection_info or self.shipment_type == ShipmentType.COLLECTION:
+    #         raise ValueError('Can only convert outbound delivery shipments')
+    #     res = self.model_copy(deep=True)
+    #     res.shipment_type = ShipmentType.COLLECTION
+    #     res.print_own_label = own_label
+    #     res.collection_info = collection_info_from_sender(self)
+    #     return res
 
     def __str__(self):
         return f'{self.shipment_type} {f'from {self.collection_info.collection_address.address_line1} ' if self.collection_info else ''}to {self.recipient_address.address_line1}'
@@ -100,6 +135,28 @@ def collection_info_from_recipient(shipment):
         collection_contact=(
             ContactCollection.model_validate(
                 shipment.recipient_contact.model_dump(exclude={'notifications'})
+            )
+        ),
+        collection_time=DateTimeRange.null_times_from_date(shipment.shipping_date),
+    )
+
+
+def collection_info_from_deets(address: AddressBase, contact: Contact, shipping_date: dt.date):
+    return CollectionInfo(
+        collection_address=AddressCollection.model_validate(address, from_attributes=True),
+        collection_contact=(
+            ContactCollection.model_validate(contact.model_dump(exclude={'notifications'}))
+        ),
+        collection_time=DateTimeRange.null_times_from_date(shipping_date),
+    )
+
+
+def collection_info_from_sender(shipment):
+    return CollectionInfo(
+        collection_address=AddressCollection(**shipment.sender_address.model_dump()),
+        collection_contact=(
+            ContactCollection.model_validate(
+                shipment.sender_contact.model_dump(exclude={'notifications'})
             )
         ),
         collection_time=DateTimeRange.null_times_from_date(shipment.shipping_date),

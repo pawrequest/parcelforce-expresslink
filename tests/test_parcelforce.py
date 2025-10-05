@@ -25,21 +25,23 @@ def test_client_sends_outbound(sample_shipment, sample_client, tmp_path):
     check_label(sample_client, resp, tmp_path)
 
 
-def test_to_inbound(sample_inbound_shipment, sample_shipment):
+def test_to_inbound(sample_inbound_shipment, sample_shipment, sample_contact):
     ...
-    og_recipient_contact = sample_shipment.recipient_contact.model_dump(exclude={'notifications'})
+    og_recipient_contact = sample_contact.model_dump(exclude={'notifications'})
 
-    c = sample_inbound_shipment.collection_info
-    collection_contact = c.collection_contact.model_dump(exclude={'notifications'})
+    collection_info = sample_inbound_shipment.collection_info
+    collection_contact = collection_info.collection_contact.model_dump(exclude={'notifications'})
 
-    converted_back_recip = Contact.model_validate(
+    collection_contact_conveted_to_recipient = Contact.model_validate(
         collection_contact, from_attributes=True
     ).model_dump(exclude={'notifications'})
-    assert og_recipient_contact == converted_back_recip
+
+
+    assert og_recipient_contact == collection_contact_conveted_to_recipient
     assert sample_inbound_shipment.shipment_type == ShipmentType.COLLECTION
     assert sample_inbound_shipment.print_own_label == True
-    assert c.collection_address.model_dump() == sample_shipment.recipient_address.model_dump()
-    assert c.collection_time == DateTimeRange.null_times_from_date(sample_shipment.shipping_date)
+    assert collection_info.collection_address.model_dump() == sample_shipment.recipient_address.model_dump()
+    assert collection_info.collection_time == DateTimeRange.null_times_from_date(sample_shipment.shipping_date)
 
 
 def test_to_dropoff(sample_dropoff_shipment, sample_shipment):

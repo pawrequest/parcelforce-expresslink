@@ -27,3 +27,6 @@ parcelforce-expresslink = "parcelforce_expresslink:main"
 dev = [
     "pytest>=8.4.2",
 ]
+
+[tool.uv.build-backend]
+source-includes = ["tests/**"]
