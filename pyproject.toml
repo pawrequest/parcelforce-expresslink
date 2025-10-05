@@ -28,5 +28,5 @@ dev = [
     "pytest>=8.4.2",
 ]
 
-[tool.uv.build-backend]
-source-includes = ["tests/**"]
+#[tool.uv.build-backend]
+#source-includes = ["tests/**"]

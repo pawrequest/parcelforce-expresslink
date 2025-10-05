@@ -9,8 +9,11 @@ import pytest
 from parcelforce_expresslink.config import ParcelforceSettings
 from parcelforce_expresslink.client import ParcelforceClient
 from parcelforce_expresslink.address import AddressRecipient, Contact
-from parcelforce_expresslink.request_response import ShipmentResponse
 from parcelforce_expresslink.shipment import Shipment
+
+TEST_DATE = date.today() + timedelta(days=2)
+if TEST_DATE.weekday() in (5, 6):
+    TEST_DATE += timedelta(days=7 - TEST_DATE.weekday())
 
 
 @pytest.fixture(autouse=True)
@@ -53,27 +56,23 @@ def sample_shipment(sample_settings, sample_address, sample_contact):
         recipient_address=sample_address,
         recipient_contact=sample_contact,
         total_number_of_parcels=1,
-        shipping_date=date.today(),
+        shipping_date=TEST_DATE,
         contract_number=sample_settings.pf_contract_num_1,
     )
 
 
 @pytest.fixture
-def sample_inbound_shipment(sample_shipment, sample_home_address, sample_home_contact):
-    if sample_shipment.shipping_date <= date.today():
-        sample_shipment.shipping_date = date.today() + timedelta(days=2)
-    return sample_shipment.to_inbound(
+def sample_shipment_dropoff(sample_shipment, sample_home_address, sample_home_contact):
+    return sample_shipment.swap_sender_recipient(
         recipient_address=sample_home_address,
         recipient_contact=sample_home_contact,
     )
 
 
 @pytest.fixture
-def sample_dropoff_shipment(sample_shipment, sample_home_address, sample_home_contact):
-    return sample_shipment.to_dropoff(
-        recipient_address=sample_home_address,
-        recipient_contact=sample_home_contact,
-    )
+def sample_shipment_inbound(sample_shipment_dropoff, sample_home_address, sample_home_contact):
+    sample_shipment_dropoff.print_own_label = True
+    return sample_shipment_dropoff.change_sender_to_collection()
 
 
 @pytest.fixture
