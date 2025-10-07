@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "parcelforce-expresslink"
-version = "0.1.6"
+version = "0.1.7"
 description = "Basic client for Parcelforce Expresslink API"
 readme = "README.md"
 authors = [
