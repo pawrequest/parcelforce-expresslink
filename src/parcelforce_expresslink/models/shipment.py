@@ -4,26 +4,36 @@ import datetime as dt
 from enum import StrEnum
 from pathlib import Path
 from typing import Self
+
 from loguru import logger
-from pydantic import constr
+from pydantic import constr, field_validator
 
-from parcelforce_expresslink.types import DropOffInd, ShipmentType
-from parcelforce_expresslink.address import (
-    AddressCollection,
-    AddressSender,
-    Contact,
-    ContactCollection,
-    ContactSender,
+from parcelforce_expresslink.models.address import (
     AddressBase,
+    AddressCollection,
+    AddressRecipient,
+    AddressSender,
 )
-from parcelforce_expresslink.lists import HazardousGoods
-from parcelforce_expresslink.models import AddressRecipient, DeliveryOptions
-from parcelforce_expresslink.services import ServiceCode
-from parcelforce_expresslink.shared import DateTimeRange, Enhancement, PFBaseModel
-from parcelforce_expresslink.top import CollectionInfo
+from parcelforce_expresslink.models.base import DateTimeRange, PFBaseModel
+from parcelforce_expresslink.client.shipment_details import (
+    Enhancement,
+    InBoundDetails,
+    InternationalInfo,
+)
+from parcelforce_expresslink.models.contact import Contact, ContactCollection, ContactSender
+from parcelforce_expresslink.models.delivery_collection import CollectionInfo, DeliveryOptions, Returns
+from parcelforce_expresslink.models.parcel import HazardousGoods
+from parcelforce_expresslink.models.services import ServiceCode
 
 
-# from shipaw.models.ship_types import ShipDirection
+class ShipmentType(StrEnum):
+    DELIVERY = 'DELIVERY'
+    COLLECTION = 'COLLECTION'
+
+
+class DropOffInd(StrEnum):
+    PO = 'PO'
+    DEPOT = 'DEPOT'
 
 
 class ShipmentReferenceFields(PFBaseModel):
@@ -70,6 +80,12 @@ class Shipment(ShipmentReferenceFields):
     hazardous_goods: HazardousGoods | None = None
     consignment_handling: bool | None = None
     drop_off_ind: DropOffInd | None = None
+
+    @field_validator('reference_number1', mode='after')
+    def ref_num_validator(cls, v, values):
+        if not v:
+            v = values.data.get('recipient_contact').delivery_contact_business
+        return v
 
     @property
     def direction(self) -> ShipDirection:
@@ -163,3 +179,32 @@ class ShipDirection(StrEnum):
     OUTBOUND = 'out'
     DROPOFF = 'dropoff'
 
+
+class ShipmentComplex(Shipment):
+    hazardous_goods: HazardousGoods | None = None
+    consignment_handling: bool | None = None
+    drop_off_ind: DropOffInd | None = None
+    exchange_instructions1: constr(max_length=25) | None = None
+    exchange_instructions2: constr(max_length=25) | None = None
+    exchange_instructions3: constr(max_length=25) | None = None
+    exporter_address: AddressRecipient | None = None
+    exporter_contact: Contact | None = None
+    importer_address: AddressRecipient | None = None
+    importer_contact: Contact | None = None
+    in_bound_address: AddressRecipient | None = None
+    in_bound_contact: Contact | None = None
+    in_bound_details: InBoundDetails | None = None
+    international_info: InternationalInfo | None = None
+    pre_printed: bool | None = None
+    print_own_label: bool | None = None
+    reference_number1: constr(max_length=24) | None = None
+    reference_number2: constr(max_length=24) | None = None
+    reference_number3: constr(max_length=24) | None = None
+    reference_number4: constr(max_length=24) | None = None
+    reference_number5: constr(max_length=24) | None = None
+    request_id: int | None = None
+    returns: Returns | None = None
+    special_instructions1: constr(max_length=25) | None = None
+    special_instructions2: constr(max_length=25) | None = None
+    special_instructions3: constr(max_length=25) | None = None
+    special_instructions4: constr(max_length=25) | None = None

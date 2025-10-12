@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from functools import lru_cache
 from typing import Self
 
@@ -12,31 +10,31 @@ from pydantic import model_validator
 from thefuzz import fuzz, process
 from zeep.proxy import ServiceProxy
 
-from parcelforce_expresslink.combadge import (
+from parcelforce_expresslink.models.base import VALID_POSTCODE
+from parcelforce_expresslink.client.combadge import (
     CancelShipmentService,
     CreateManifestService,
     CreateShipmentService,
     FindService,
     PrintLabelService,
 )
-from parcelforce_expresslink.address import AddTypes, AddressChoice, AddressRecipient
-from parcelforce_expresslink.request_response import (
+from parcelforce_expresslink.models.address import AddressChoice, AddressRecipient
+from parcelforce_expresslink.client.request_response import (
+    BaseRequest,
     Authentication,
+    ShipmentResponse,
+    ShipmentRequest,
     CancelShipmentRequest,
     CancelShipmentResponse,
-    CreateManifestRequest,
-    CreateManifestResponse,
     FindRequest,
+    PAF,
     PrintLabelRequest,
     PrintLabelResponse,
-    ShipmentRequest,
-    ShipmentResponse,
-    BaseRequest,
+    CreateManifestRequest,
+    CreateManifestResponse,
 )
-from parcelforce_expresslink.config import ParcelforceSettings
-from parcelforce_expresslink.shipment import Shipment
-from parcelforce_expresslink.top import PAF
-from parcelforce_expresslink.types import VALID_POSTCODE
+from parcelforce_expresslink.models.config import ParcelforceSettings
+from parcelforce_expresslink.models.shipment import Shipment
 
 SCORER = fuzz.token_sort_ratio
 
@@ -111,7 +109,7 @@ class ParcelforceClient(pydantic.BaseModel):
         return resp
 
     def cancel_shipment(self, shipment_number):
-        req = CancelShipmentRequest(shipment_number=shipment_number).authenticate_from_settings()
+        req = CancelShipmentRequest(shipment_number=shipment_number).authenticate_from_settings(self.settings)
         back = self.backend(CancelShipmentService)
         response: CancelShipmentResponse = back.cancelshipment(
             request=req.model_dump(by_alias=True)
@@ -191,11 +189,11 @@ class ParcelforceClient(pydantic.BaseModel):
 
     def get_manifest(self):
         back = self.backend(CreateManifestService)
-        req = CreateManifestRequest(authentication=Authentication.from_settings())
+        req = CreateManifestRequest(authentication=Authentication.from_settings(ParcelforceSettings.from_env()))
         response: CreateManifestResponse = back.createmanifest(request=req)
         return response
 
-    def choose_address[T: AddTypes](self, address: T) -> tuple[T, int]:
+    def choose_address[T: AddressRecipient](self, address: T) -> tuple[T, int]:
         """Takes a potentially invalid address, and returns the closest match from ExpressLink with fuzzy score."""
         candidates = self.get_candidates(address.postcode)
         candidate_strs = [c.lines_str for c in candidates]
@@ -203,12 +201,12 @@ class ParcelforceClient(pydantic.BaseModel):
         chosen_add = candidates[candidate_strs.index(chosen)]
         return chosen_add, score
 
-    def address_choice[T: AddTypes](self, address: T) -> AddressChoice:
+    def address_choice[T: AddressRecipient](self, address: T) -> AddressChoice:
         logger.info(f'Choosing address for {address.lines_str} @ {address.postcode}')
         chosen, score = self.choose_address(address)
         return AddressChoice(address=chosen, score=score)
 
-    def get_choices[T: AddTypes](
+    def get_choices[T: AddressRecipient](
         self, postcode: VALID_POSTCODE, address: T | None = None
     ) -> list[AddressChoice]:
         candidates = self.get_candidates(postcode)

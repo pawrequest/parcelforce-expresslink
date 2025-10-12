@@ -1,15 +1,17 @@
 import os
 
+from parcelforce_expresslink.expresslink_client import ParcelforceClient
+
 os.environ['PARCELFORCE_ENV'] = r'C:\prdev\envs\amdev\sandbox\parcelforce.env'
 import sys
 from datetime import date, timedelta
 
 import pytest
 
-from parcelforce_expresslink.config import ParcelforceSettings
-from parcelforce_expresslink.client import ParcelforceClient
-from parcelforce_expresslink.address import AddressRecipient, Contact
-from parcelforce_expresslink.shipment import Shipment
+from parcelforce_expresslink.models.config import ParcelforceSettings
+from parcelforce_expresslink.models.address import AddressRecipient
+from parcelforce_expresslink.models.contact import Contact
+from parcelforce_expresslink.models.shipment import Shipment
 
 TEST_DATE = date.today() + timedelta(days=2)
 if TEST_DATE.weekday() in (5, 6):

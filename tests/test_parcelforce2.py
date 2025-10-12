@@ -1,13 +1,14 @@
-from parcelforce_expresslink.address import AddressRecipient, Contact
-from parcelforce_expresslink.request_response import ShipmentResponse
-from parcelforce_expresslink.shared import DateTimeRange
-from parcelforce_expresslink.types import ShipmentType
+from parcelforce_expresslink.models.address import AddressTemporary
+from parcelforce_expresslink.models.base import DateTimeRange
+from parcelforce_expresslink.client.request_response import ShipmentResponse
+from parcelforce_expresslink.models.contact import Contact
+from parcelforce_expresslink.models.shipment import ShipmentType
 
 
 def test_client_gets_candidates(sample_client, sample_address):
     addresses = sample_client.get_candidates(sample_address.postcode)
     assert isinstance(addresses, list)
-    assert isinstance(addresses[0], AddressRecipient)
+    assert isinstance(addresses[0], AddressTemporary)
     assert addresses[0].postcode == sample_address.postcode
 
 
@@ -16,6 +17,14 @@ def check_label(sample_client, resp, tmp_path):
     output = tmp_path / f'{resp.shipment_num}.pdf'
     output.write_bytes(label_data)
     assert output.exists()
+    assert output.stat().st_size > 1000
+    with output.open('rb') as f:
+        header = f.read(5)
+        assert header == b'%PDF-'
+    # with output.open('rb') as f:
+    #     reader = PyPDF2.PdfReader(f)
+    #     assert len(reader.pages) > 0
+
 
 
 def test_client_sends_outbound(sample_shipment, sample_client, tmp_path):

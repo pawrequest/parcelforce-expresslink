@@ -21,7 +21,9 @@ def get_env(env_name: str = 'PARCELFORCE_ENV') -> Path:
 
 
 def get_wsdl():
-    res = Path(cast(Path, files('parcelforce_expresslink').joinpath('expresslink_api.wsdl'))) # resource files returns Traversable (subset of path)
+    res = Path(
+        cast(Path, files('parcelforce_expresslink').joinpath('expresslink_api.wsdl'))
+    )  # resource files returns Traversable (subset of path)
     if not res.exists():
         raise FileNotFoundError('WSDL file not found')
     logger.info(f'Using WSDL file at {res}')
@@ -29,10 +31,6 @@ def get_wsdl():
 
 
 class ParcelforceSettings(BaseSettings):
-    """Load Parcelforce ExpressLink configuration from environment variables / .env file.
-    location of environment file is set by the environment variable PARCELFORCE_ENV.
-    """
-
     pf_ac_num_1: str
     pf_contract_num_1: str
     pf_expr_usr: SecretStr
@@ -57,10 +55,20 @@ class ParcelforceSettings(BaseSettings):
     def from_env(cls, env_name: str = 'PARCELFORCE_ENV') -> Self:
         return cls(_env_file=get_env(env_name))
 
-    def tracking_link(self, shipment_num: str) -> str:
+    @classmethod
+    def from_env_file(cls, env_path: Path) -> Self:
+        return cls(_env_file=env_path)
+
+    @classmethod
+    def from_args(cls, *, usrname: str, password: str, contract_num: str, account_num: str):
+        return cls(
+            pf_expr_usr=SecretStr(usrname),
+            pf_expr_pwd=SecretStr(password),
+            pf_contract_num_1=contract_num,
+            pf_ac_num_1=account_num,
+        )
+
+    def tracking_link(self, shipment_num: str, parcel_num: str = '001') -> str:
         stem = self.tracking_url_stem
-        tlink = f'{stem}PB{shipment_num}001'
+        tlink = f'{stem}PB{shipment_num}{parcel_num}'
         return tlink
-
-
-
