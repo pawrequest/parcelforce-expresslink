@@ -8,7 +8,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from parcelforce_expresslink.models.config import ParcelforceSettings
+from parcelforce_expresslink.config import ParcelforceSettings
 from parcelforce_expresslink.models.address import AddressRecipient
 from parcelforce_expresslink.models.contact import Contact
 from parcelforce_expresslink.models.shipment import Shipment
@@ -31,6 +31,11 @@ def sample_settings():
     settings = ParcelforceSettings.from_env()
     assert 'test' in settings.pf_endpoint.lower(), 'Not using test endpoint!'
     return settings
+
+@pytest.fixture
+def sample_client() -> ParcelforceClient:
+    client = ParcelforceClient.from_env()
+    return client
 
 
 @pytest.fixture
@@ -76,11 +81,6 @@ def sample_shipment_inbound(sample_shipment_dropoff, sample_home_address, sample
     sample_shipment_dropoff.print_own_label = True
     return sample_shipment_dropoff.change_sender_to_collection()
 
-
-@pytest.fixture
-def sample_client() -> ParcelforceClient:
-    client = ParcelforceClient.from_env()
-    return client
 
 
 @pytest.fixture

@@ -33,7 +33,7 @@ from parcelforce_expresslink.client.request_response import (
     CreateManifestRequest,
     CreateManifestResponse,
 )
-from parcelforce_expresslink.models.config import ParcelforceSettings
+from parcelforce_expresslink.config import ParcelforceSettings
 from parcelforce_expresslink.models.shipment import Shipment
 
 SCORER = fuzz.token_sort_ratio
