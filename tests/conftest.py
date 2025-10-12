@@ -1,13 +1,8 @@
-import os
-
-from parcelforce_expresslink.expresslink_client import ParcelforceClient
-
-os.environ['PARCELFORCE_ENV'] = r'C:\prdev\envs\amdev\sandbox\parcelforce.env'
-import sys
 from datetime import date, timedelta
 
 import pytest
 
+from parcelforce_expresslink.expresslink_client import ParcelforceClient
 from parcelforce_expresslink.config import ParcelforceSettings
 from parcelforce_expresslink.models.address import AddressRecipient
 from parcelforce_expresslink.models.contact import Contact
@@ -18,23 +13,16 @@ if TEST_DATE.weekday() in (5, 6):
     TEST_DATE += timedelta(days=7 - TEST_DATE.weekday())
 
 
-@pytest.fixture(autouse=True)
-def sandbox_only():
-    settings = ParcelforceSettings.from_env()
-    if 'test' not in settings.pf_endpoint:
-        pytest.skip('Skipping ParcelForce tests outside sandbox environment')
-        sys.exit()
-
-
 @pytest.fixture
 def sample_settings():
     settings = ParcelforceSettings.from_env()
-    assert 'test' in settings.pf_endpoint.lower(), 'Not using test endpoint!'
     return settings
+
 
 @pytest.fixture
 def sample_client() -> ParcelforceClient:
     client = ParcelforceClient.from_env()
+    assert client.is_sandbox()
     return client
 
 
@@ -80,7 +68,6 @@ def sample_shipment_dropoff(sample_shipment, sample_home_address, sample_home_co
 def sample_shipment_inbound(sample_shipment_dropoff, sample_home_address, sample_home_contact):
     sample_shipment_dropoff.print_own_label = True
     return sample_shipment_dropoff.change_sender_to_collection()
-
 
 
 @pytest.fixture

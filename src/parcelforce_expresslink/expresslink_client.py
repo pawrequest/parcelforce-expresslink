@@ -54,6 +54,9 @@ class ParcelforceClient(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True, validate_default=True)
 
+    def is_sandbox(self):
+        return 'test' in self.settings.pf_endpoint.lower()
+
     def authenticate_request(self, req: BaseRequest):
         req.authentication = Authentication.from_settings(self.settings)
 
@@ -109,7 +112,9 @@ class ParcelforceClient(pydantic.BaseModel):
         return resp
 
     def cancel_shipment(self, shipment_number):
-        req = CancelShipmentRequest(shipment_number=shipment_number).authenticate_from_settings(self.settings)
+        req = CancelShipmentRequest(shipment_number=shipment_number).authenticate_from_settings(
+            self.settings
+        )
         back = self.backend(CancelShipmentService)
         response: CancelShipmentResponse = back.cancelshipment(
             request=req.model_dump(by_alias=True)
@@ -189,7 +194,9 @@ class ParcelforceClient(pydantic.BaseModel):
 
     def get_manifest(self):
         back = self.backend(CreateManifestService)
-        req = CreateManifestRequest(authentication=Authentication.from_settings(ParcelforceSettings.from_env()))
+        req = CreateManifestRequest(
+            authentication=Authentication.from_settings(ParcelforceSettings.from_env())
+        )
         response: CreateManifestResponse = back.createmanifest(request=req)
         return response
 
