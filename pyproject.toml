@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "parcelforce-expresslink"
-version = "0.1.7"
+version = "0.1.8"
 description = "Basic client for Parcelforce Expresslink API"
 readme = "README.md"
 authors = [
@@ -30,3 +30,10 @@ dev = [
 
 #[tool.uv.build-backend]
 #source-includes = ["tests/**"]
+
+
+[tool.ruff]
+line-length = 120
+extend-select = ["Q", "RUF100", "UP"]
+flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
+format.quote-style = "single"
