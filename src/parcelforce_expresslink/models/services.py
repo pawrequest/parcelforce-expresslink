@@ -1,5 +1,9 @@
 import enum
 
+from pydantic import Field
+
+from parcelforce_expresslink.models.base import PFBaseModel
+
 
 class ServiceCode(enum.StrEnum):
     EXPRESS24 = 'SND'
@@ -56,3 +60,7 @@ class ServiceCodeFull(enum.StrEnum):
     EURO_PRIORITY_PACK = 'EPK'
     EUROPRIORITY_HOME_PO_BOXES = 'EPP'
     IRELANDEXPRESS = 'I24'
+
+
+class ServiceCodes(PFBaseModel):
+    service_code: list[str] = Field(default_factory=list)

@@ -7,47 +7,26 @@ import pydantic as pyd
 from loguru import logger
 from pydantic import Field, StringConstraints
 
-from parcelforce_expresslink.config import ParcelforceSettings
-from parcelforce_expresslink.types import ExpressLinkError
-from parcelforce_expresslink.lists import CompletedCancel, SafePlacelist
-from parcelforce_expresslink.models import (
-    CompletedReturnInfo,
-    ConvenientCollect,
-    PostOffice,
-    SpecifiedPostOffice,
-)
-from parcelforce_expresslink.shared import DateTimeRange, Document, PFBaseModel
-from parcelforce_expresslink.shipment import Shipment
-from parcelforce_expresslink.top import (
-    CompletedManifests,
+# from parcelforce_expresslink.config import ParcelforceSettings
+from parcelforce_expresslink.models.base import ExpressLinkError, PFBaseModel, DateTimeRange
+from parcelforce_expresslink.client.shipment_details import (
     CompletedShipmentInfo,
+    CompletedManifests,
+    CompletedReturnInfo,
     CompletedShipmentInfoCreatePrint,
-    NominatedDeliveryDates,
-    PAF,
-    PostcodeExclusion,
-    RequestedShipmentMinimum,
-    ShipmentLabelData,
 )
 
-
-class AlertType(StrEnum):
-    ERROR = 'ERROR'
-    WARNING = 'WARNING'
-    NOTIFICATION = 'NOTIFICATION'
-
-
-class Alert(PFBaseModel):
-    code: int | None = None
-    message: str
-    type: AlertType = AlertType.NOTIFICATION
-
-
-class Alerts(PFBaseModel):
-    alert: list[Alert] = Field(default_factory=list[Alert])
-
-    @classmethod
-    def empty(cls):
-        return cls(alert=[])
+from parcelforce_expresslink.client.alerts import AlertType, Alerts
+from parcelforce_expresslink.client.shipment_details import CompletedCancel
+from parcelforce_expresslink.models.delivery_collection import (
+    SpecifiedNeighbour,
+    NominatedDeliveryDates,
+    Departments,
+    SafePlacelist,
+)
+from parcelforce_expresslink.models.documents import Document, ShipmentLabelData
+from parcelforce_expresslink.models.postoffice import ConvenientCollect, SpecifiedPostOffice, PostOffice
+from parcelforce_expresslink.models.shipment import Shipment
 
 
 class Authentication(PFBaseModel):
@@ -55,7 +34,7 @@ class Authentication(PFBaseModel):
     password: Annotated[str, StringConstraints(max_length=80)]
 
     @classmethod
-    def from_settings(cls, settings: ParcelforceSettings) -> Self:
+    def from_settings(cls, settings: 'ParcelforceSettings') -> Self:
         return cls(
             user_name=settings.pf_expr_usr.get_secret_value(),
             password=settings.pf_expr_pwd.get_secret_value(),
@@ -65,16 +44,31 @@ class Authentication(PFBaseModel):
 class BaseRequest(PFBaseModel):
     authentication: Authentication | None = None
 
-    def authenticated(self, auth):
-        self.authentication = auth
-        return self
-
     def authenticate(self, username: str, password: str):
         self.authentication = Authentication(user_name=username, password=password)
         return self
 
-    def authenticate_from_settings(self):
-        return self.authenticate(*ParcelforceSettings.from_env().get_auth_secrets())
+    def authenticate_from_settings(self, settings: 'ParcelforceSettings'):
+        return self.authenticate(*settings.get_auth_secrets())
+
+
+class BaseResponse(PFBaseModel):
+    alerts: Alerts | None = Field(default_factory=Alerts.empty)
+
+
+################################################################
+
+
+class PAF(PFBaseModel):
+    postcode: str | None = None
+    count: int | None = Field(None)
+    specified_neighbour: list[SpecifiedNeighbour] = Field(default_factory=list, description='')
+
+
+class PostcodeExclusion(PFBaseModel):
+    delivery_postcode: str | None = None
+    collection_postcode: str | None = None
+    departments: Departments | None = None
 
 
 class FindMessage(PFBaseModel):
@@ -89,14 +83,11 @@ class FindMessage(PFBaseModel):
 class FindRequest(FindMessage, BaseRequest): ...
 
 
-class BaseResponse(PFBaseModel):
-    alerts: Alerts | None = Field(default_factory=Alerts.empty)
-
-
 class FindResponse(FindMessage, BaseResponse):
     safe_place_list: SafePlacelist | None = pyd.Field(default_factory=list)
 
 
+################################################################
 class ShipmentRequest(BaseRequest):
     requested_shipment: Shipment
 
@@ -124,10 +115,6 @@ class ShipmentResponse(BaseResponse):
             return self.completed_shipment_info.status.lower() == 'allocated'
         return False
 
-    def tracking_link(self):
-        stem = ParcelforceSettings.from_env().tracking_url_stem
-        tlink = f'{stem}PB{self.shipment_num}001'
-        return tlink
 
     def handle_errors(self):
         if hasattr(self, 'Error'):  # Combadge adds this? or PF? not in WSDL but appears sometimes
@@ -240,7 +227,7 @@ class CancelShipmentResponse(BaseResponse):
 
 
 class CreatePrintRequest(BaseRequest):
-    requested_shipment: RequestedShipmentMinimum
+    requested_shipment: Shipment
 
 
 class CreatePrintResponse(BaseResponse):
