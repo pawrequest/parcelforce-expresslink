@@ -11,25 +11,15 @@ class AddressTemporary(PFBaseModel):
     address_line3: str | None = None
     town: str | None = None
     postcode: str | None = None
-
-
-class AddressBase(AddressTemporary):
-    address_line1: constr(max_length=24)
-    address_line2: constr(max_length=24) | None = None
-    address_line3: constr(max_length=24) | None = None
-    town: constr(max_length=25)
-    postcode: VALID_POSTCODE
     country: str = 'GB'
 
     @property
     def lines_dict(self):
-        return {
-            line_field: getattr(self, line_field) for line_field in sorted(self.lines_fields_set)
-        }
+        return {line_field: getattr(self, line_field) for line_field in sorted(self.lines_fields_set)}
 
     @property
     def lines_fields_set(self):
-        return {_ for _ in self.model_fields_set if 'address_line' in _}
+        return {_ for _ in self.model_fields_set if 'address_line' in _ and getattr(self, _) is not None}
 
     @property
     def lines_str(self):
@@ -38,6 +28,14 @@ class AddressBase(AddressTemporary):
     @property
     def lines_str_oneline(self):
         return ', '.join(self.lines_dict.values())
+
+
+class AddressBase(AddressTemporary):
+    address_line1: constr(max_length=24)
+    address_line2: constr(max_length=24) | None = None
+    address_line3: constr(max_length=24) | None = None
+    town: constr(max_length=25)
+    postcode: VALID_POSTCODE
 
 
 class AddressSender(AddressBase):
@@ -60,7 +58,7 @@ class AddressRecipient(AddressCollection):
     town: constr(max_length=30)
 
 
-class AddressChoice[T: AddressCollection | AddressRecipient](PFBaseModel):
+class AddressChoice[T: AddressCollection | AddressRecipient | AddressTemporary](PFBaseModel):
     address: T
     # address: T = sqm.Field(sa_column=sqm.Column(sqm.JSON))
     score: int
