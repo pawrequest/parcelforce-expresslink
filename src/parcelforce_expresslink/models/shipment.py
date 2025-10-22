@@ -175,9 +175,9 @@ def collection_info_from_sender(shipment):
 
 
 class ShipDirection(StrEnum):
-    INBOUND = 'in'
-    OUTBOUND = 'out'
-    DROPOFF = 'dropoff'
+    INBOUND = 'Inbound'
+    OUTBOUND = 'Outbound'
+    DROPOFF = 'Dropoff'
 
 
 class ShipmentComplex(Shipment):
