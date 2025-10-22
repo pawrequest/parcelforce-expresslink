@@ -48,7 +48,7 @@ def test_to_inbound(sample_shipment_inbound, sample_shipment, sample_contact):
 
     assert og_recipient_contact == collection_contact_conveted_to_recipient
     assert sample_shipment_inbound.shipment_type == ShipmentType.COLLECTION
-    assert sample_shipment_inbound.print_own_label == True
+    assert sample_shipment_inbound.print_own_label
     assert collection_info.collection_address.model_dump() == sample_shipment.recipient_address.model_dump()
     assert collection_info.collection_time == DateTimeRange.null_times_from_date(sample_shipment.shipping_date)
 

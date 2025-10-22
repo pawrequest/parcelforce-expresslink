@@ -7,13 +7,16 @@ from parcelforce_expresslink.models.base import PFBaseModel, DateTimeRange
 from parcelforce_expresslink.models.contact import ContactCollection
 from parcelforce_expresslink.models.postoffice import ConvenientCollect, SpecifiedPostOffice
 from parcelforce_expresslink.models.services import ServiceCodes
+
 if TYPE_CHECKING:
     from parcelforce_expresslink.models.shipment import Shipment
+
 
 class Returns(PFBaseModel):
     returns_email: str | None = None
     email_message: str | None = None
     email_label: bool
+
 
 class CollectionInfo(PFBaseModel):
     collection_contact: ContactCollection
@@ -52,7 +55,6 @@ class NominatedDeliveryDates(PFBaseModel):
 
 class SafePlacelist(PFBaseModel):
     safe_place: list[str] = Field(default_factory=list)
-
 
 
 class SpecifiedNeighbour(PFBaseModel):

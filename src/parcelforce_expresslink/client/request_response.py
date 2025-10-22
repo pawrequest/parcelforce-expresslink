@@ -7,6 +7,7 @@ import pydantic as pyd
 from loguru import logger
 from pydantic import Field, StringConstraints
 
+from parcelforce_expresslink.config import ParcelforceSettings
 # from parcelforce_expresslink.config import ParcelforceSettings
 from parcelforce_expresslink.models.base import ExpressLinkError, PFBaseModel, DateTimeRange
 from parcelforce_expresslink.client.shipment_details import (
@@ -34,7 +35,7 @@ class Authentication(PFBaseModel):
     password: Annotated[str, StringConstraints(max_length=80)]
 
     @classmethod
-    def from_settings(cls, settings: 'ParcelforceSettings') -> Self:
+    def from_settings(cls, settings: ParcelforceSettings) -> Self:
         return cls(
             user_name=settings.pf_expr_usr.get_secret_value(),
             password=settings.pf_expr_pwd.get_secret_value(),
@@ -48,7 +49,7 @@ class BaseRequest(PFBaseModel):
         self.authentication = Authentication(user_name=username, password=password)
         return self
 
-    def authenticate_from_settings(self, settings: 'ParcelforceSettings'):
+    def authenticate_from_settings(self, settings: ParcelforceSettings):
         return self.authenticate(*settings.get_auth_secrets())
 
 
