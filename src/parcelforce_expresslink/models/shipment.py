@@ -69,9 +69,7 @@ class Shipment(ShipmentReferenceFields):
     sender_contact: ContactSender | None = None
     sender_address: AddressSender | None = None
 
-    _label_file: Path | None = (
-        None  # must be private for xml serialization to exclude / expresslink to work
-    )
+    _label_file: Path | None = None  # must be private for xml serialization to exclude / expresslink to work
     _direction: ShipDirection | None = None  # derived, not settable
 
     # currently unused (but required by expresslink)
@@ -130,9 +128,7 @@ class Shipment(ShipmentReferenceFields):
             raise ValueError('Can not convert to OUTBOUND, only INBOUND or DROPOFF')
         if self.direction != ShipDirection.OUTBOUND:
             raise ValueError('Can only convert outbound delivery shipments')
-        res = self.swap_sender_recipient(
-            recipient_address=recipient_address, recipient_contact=recipient_contact
-        )
+        res = self.swap_sender_recipient(recipient_address=recipient_address, recipient_contact=recipient_contact)
         if direction == ShipDirection.INBOUND:
             res.change_sender_to_collection()
 
@@ -144,9 +140,7 @@ def collection_info_from_recipient(shipment):
     return CollectionInfo(
         collection_address=AddressCollection(**shipment.recipient_address.model_dump()),
         collection_contact=(
-            ContactCollection.model_validate(
-                shipment.recipient_contact.model_dump(exclude={'notifications'})
-            )
+            ContactCollection.model_validate(shipment.recipient_contact.model_dump(exclude={'notifications'}))
         ),
         collection_time=DateTimeRange.null_times_from_date(shipment.shipping_date),
     )
@@ -155,9 +149,7 @@ def collection_info_from_recipient(shipment):
 def collection_info_from_deets(address: AddressBase, contact: Contact, shipping_date: dt.date):
     return CollectionInfo(
         collection_address=AddressCollection.model_validate(address, from_attributes=True),
-        collection_contact=(
-            ContactCollection.model_validate(contact.model_dump(exclude={'notifications'}))
-        ),
+        collection_contact=(ContactCollection.model_validate(contact.model_dump(exclude={'notifications'}))),
         collection_time=DateTimeRange.null_times_from_date(shipping_date),
     )
 
@@ -166,9 +158,7 @@ def collection_info_from_sender(shipment):
     return CollectionInfo(
         collection_address=AddressCollection(**shipment.sender_address.model_dump()),
         collection_contact=(
-            ContactCollection.model_validate(
-                shipment.sender_contact.model_dump(exclude={'notifications'})
-            )
+            ContactCollection.model_validate(shipment.sender_contact.model_dump(exclude={'notifications'}))
         ),
         collection_time=DateTimeRange.null_times_from_date(shipment.shipping_date),
     )

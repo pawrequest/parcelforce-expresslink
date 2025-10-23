@@ -76,9 +76,7 @@ class ParcelforceClient(pydantic.BaseModel):
             wsdl=self.settings.pf_wsdl,
             settings=zeep.settings.Settings(strict=self.strict),
         )
-        return client.create_service(
-            binding_name=self.settings.pf_binding, address=self.settings.pf_endpoint
-        )
+        return client.create_service(binding_name=self.settings.pf_binding, address=self.settings.pf_endpoint)
 
     def backend(self, service_prot: type[ServiceProtocolT]) -> zeep.proxy.ServiceProxy:
         """Get a Combadge backend for a service_code protocol.
@@ -105,20 +103,14 @@ class ParcelforceClient(pydantic.BaseModel):
         back = self.backend(CreateShipmentService)
         shipment_request = ShipmentRequest(requested_shipment=shipment)
         self.authenticate_request(shipment_request)
-        resp: ShipmentResponse = back.createshipment(
-            request=shipment_request.model_dump(by_alias=True)
-        )
+        resp: ShipmentResponse = back.createshipment(request=shipment_request.model_dump(by_alias=True))
         resp.handle_errors()
         return resp
 
     def cancel_shipment(self, shipment_number):
-        req = CancelShipmentRequest(shipment_number=shipment_number).authenticate_from_settings(
-            self.settings
-        )
+        req = CancelShipmentRequest(shipment_number=shipment_number).authenticate_from_settings(self.settings)
         back = self.backend(CancelShipmentService)
-        response: CancelShipmentResponse = back.cancelshipment(
-            request=req.model_dump(by_alias=True)
-        )
+        response: CancelShipmentResponse = back.cancelshipment(request=req.model_dump(by_alias=True))
         return response
 
     def get_candidates(self, postcode: str) -> list[AddressRecipient]:
@@ -132,7 +124,7 @@ class ParcelforceClient(pydantic.BaseModel):
 
         """
         postcode = clean_up_postcode(postcode)
-        req = FindRequest(paf=PAF(postcode=postcode))
+        req = FindRequest(paf=PAF(postcode=postcode))  # pycharm_pydantic false positive aliases
         self.authenticate_request(req)
         back = self.backend(FindService)
         response = back.find(request=req.model_dump(by_alias=True))
@@ -141,15 +133,11 @@ class ParcelforceClient(pydantic.BaseModel):
             return []
         return [neighbour.address[0] for neighbour in response.paf.specified_neighbour]
 
-    def get_label_content(
-        self, ship_num, print_format: str | None = None, barcode_format: str | None = None
-    ) -> bytes:
+    def get_label_content(self, ship_num, print_format: str | None = None, barcode_format: str | None = None) -> bytes:
         response = self.get_label_response(ship_num, barcode_format, print_format)
         return response.label.data
 
-    def get_label_response(
-        self, ship_num: str, barcode_format: str | None = None, print_format: str | None = None
-    ):
+    def get_label_response(self, ship_num: str, barcode_format: str | None = None, print_format: str | None = None):
         back = self.backend(PrintLabelService)
         # req = PrintLabelRequest(authentication=self.settings.auth(), shipment_number=ship_num)
         req = PrintLabelRequest(
@@ -166,37 +154,9 @@ class ParcelforceClient(pydantic.BaseModel):
                 logger.warning(f'ExpressLink Warning: {alt.message}')
         return response
 
-    # def get_label(
-    #     self, ship_num, dl_path: str, print_format: str | None = None, barcode_format: str | None = None
-    # ) -> Path:
-    #     """Get the label for a shipment number.
-    #
-    #     Args:
-    #         ship_num: str - shipment number
-    #         dl_path: str - path to download the label to, defaults to './temp_label.pdf'
-    #         print_format: str | None (default = PDF)
-    #         PDF - to return a PDF image of the Label.
-    #         XML - to return a data stream in order to create own label.
-    #         PDF-XML - to return the Parcelforce label as PDF and the Partner label as XML.
-    #         XML-PDF – to return the Parcelforce label as XML and the Partner label as PDF
-    #
-    #         barcode_format: Set to PNG to return image of Barcode in Base64 code
-    #
-    #     Returns:
-    #         Path - path to the downloaded label
-    #
-    #     """
-    #     response = self.get_label_response(ship_num, barcode_format, print_format)
-    #
-    #     out_path = response.label.download(Path(dl_path))
-    #     logger.info(f'Downloaded label to {out_path}')
-    #     return out_path
-
     def get_manifest(self):
         back = self.backend(CreateManifestService)
-        req = CreateManifestRequest(
-            authentication=Authentication.from_settings(ParcelforceSettings.from_env())
-        )
+        req = CreateManifestRequest(authentication=Authentication.from_settings(ParcelforceSettings.from_env()))
         response: CreateManifestResponse = back.createmanifest(request=req)
         return response
 
@@ -232,24 +192,6 @@ class ParcelforceClient(pydantic.BaseModel):
             key=lambda x: x.score,
             reverse=True,
         )
-
-    # def get_choices_agnost(self, postcode: VALID_POSTCODE, address: AddressAgnost | None = None) -> list[AddressChoice]:
-    #     candidates = self.get_candidates_agnost(postcode)
-    #     if not address:
-    #         return [AddressChoice(address=add, score=0) for add in candidates]
-    #     candidate_dict = {add.lines_str: add for add in candidates}
-    #     scored = process.extract(
-    #         address.lines_str,
-    #         candidate_dict.keys(),
-    #         scorer=SCORER,
-    #         limit=None,
-    #     )
-    #     choices = [AddressChoice(address=candidate_dict[add], score=score) for add, score in scored]
-    #     return sorted(
-    #         choices,
-    #         key=lambda x: x.score,
-    #         reverse=True,
-    #     )
 
     def candidates_json(self, postcode):
         return {add.lines_str: add.model_dump_json() for add in self.get_candidates(postcode)}
