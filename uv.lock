@@ -195,7 +195,7 @@ wheels = [
 
 [[package]]
 name = "parcelforce-expresslink"
-version = "0.1.10"
+version = "0.1.12"
 source = { editable = "." }
 dependencies = [
     { name = "combadge" },
@@ -213,12 +213,12 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "combadge", specifier = ">=4.8.2" },
-    { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pydantic", specifier = ">=2.11.9" },
-    { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "thefuzz", specifier = ">=0.22.1" },
-    { name = "zeep", specifier = ">=4.3.2" },
+    { name = "combadge", specifier = "==4.8.2" },
+    { name = "loguru", specifier = "==0.7.3" },
+    { name = "pydantic", specifier = "==2.11.9" },
+    { name = "pydantic-settings", specifier = "==2.11.0" },
+    { name = "thefuzz", specifier = "==0.22.1" },
+    { name = "zeep", specifier = "==4.3.2" },
 ]
 
 [package.metadata.requires-dev]
